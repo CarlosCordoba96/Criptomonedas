@@ -50,9 +50,10 @@ def loadDataCSV(name,
                 target=NONE, 
                 null_target_procedure = NONE,
                 null_procedure = NONE,
-                thousands=','):
+                thousands=',',
+                na_values=None):
     # load data
-    dataFrame = pd.read_csv(name, na_values='-', thousands=thousands)
+    dataFrame = pd.read_csv(name, na_values=na_values, thousands=thousands)
 
     #TODO Replace fake nulls
     

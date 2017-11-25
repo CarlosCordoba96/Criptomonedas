@@ -16,9 +16,10 @@ cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))
 print cryptoconcurrenciesName
 for cryptoName in cryptoconcurrenciesName:
     file = mypath + cryptoName
-    cryptoconcurrencies = rp.loadDataCSV(file, target='Market Cap',
+    cryptoconcurrencies = rp.loadDataCSV(file, target=rp.NONE,
                        null_target_procedure = rp.DELETE_ROW, 
-                       null_procedure = rp.MEAN)
+                       null_procedure = rp.MEAN,
+                       na_values = '-')
     
     #cryptoconcurrencies.dataFrame['Volume'].astype(float)
     #cryptoconcurrencies.dataFrame['Market Cap'].astype(float)
