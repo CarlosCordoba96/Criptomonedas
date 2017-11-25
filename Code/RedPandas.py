@@ -52,8 +52,10 @@ def loadDataCSV(name,
                 null_procedure = NONE,
                 thousands=','):
     # load data
-    dataFrame = pd.read_csv(name, thousands=thousands)
+    dataFrame = pd.read_csv(name, na_values='-', thousands=thousands)
 
+    #TODO Replace fake nulls
+    
     if target != NONE:
         
         if null_target_procedure == MEAN:
@@ -68,9 +70,6 @@ def loadDataCSV(name,
     
     # count nulls before replacing them
     n_nulls = dataFrame.isnull().sum()
-    
-    #TODO Replace fake nulls
-    dataFrame.replace('-', np.nan)
     
     # fill nulls
     if null_procedure == MEAN:

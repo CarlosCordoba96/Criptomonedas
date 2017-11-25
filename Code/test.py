@@ -26,4 +26,3 @@ for cryptoName in cryptoconcurrenciesName:
     print(' ')
     print(cryptoName)
     cryptoconcurrencies.showBasicInfo()
-    
