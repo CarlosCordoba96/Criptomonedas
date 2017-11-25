@@ -55,3 +55,4 @@ class Bamboo:
                     headers=["Feature","Type","Num Nulls","Min","Max","Mean"])
     
         print aux_sheet
+        print 'Number of rows :' + str(len(self.dataFrame.index))
