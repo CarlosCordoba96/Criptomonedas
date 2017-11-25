@@ -49,9 +49,10 @@ DELETE_ROW = 3 #Delete row
 def loadDataCSV(name, 
                 target=NONE, 
                 null_target_procedure = NONE,
-                null_procedure = NONE):
+                null_procedure = NONE,
+                thousands=','):
     # load data
-    dataFrame = pd.read_csv(name)
+    dataFrame = pd.read_csv(name, thousands=thousands)
 
     if target != NONE:
         
@@ -67,6 +68,9 @@ def loadDataCSV(name,
     
     # count nulls before replacing them
     n_nulls = dataFrame.isnull().sum()
+    
+    #TODO Replace fake nulls
+    dataFrame.replace('-', np.nan)
     
     # fill nulls
     if null_procedure == MEAN:
