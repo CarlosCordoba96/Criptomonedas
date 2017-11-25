@@ -20,7 +20,7 @@ for cryptoName in cryptoconcurrenciesName:
                        null_target_procedure = rp.DELETE_ROW, 
                        null_procedure = rp.MEAN)
     
-    cryptoconcurrencies.dataFrame['Volume'].astype(float)
+    #cryptoconcurrencies.dataFrame['Volume'].astype(float)
     #cryptoconcurrencies.dataFrame['Market Cap'].astype(float)
     
     print(' ')
