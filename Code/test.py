@@ -7,11 +7,12 @@ Created on Thu Nov 23 15:53:15 2017
 
 import RedPandas as rp
 import pandas as pd
-
+import datetime
 from os import listdir
 from os.path import isfile, join
 mypath = 'Top100/'
 cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+
 
 print cryptoconcurrenciesName
 for cryptoName in cryptoconcurrenciesName:
@@ -23,7 +24,9 @@ for cryptoName in cryptoconcurrenciesName:
     
     #cryptoconcurrencies.dataFrame['Volume'].astype(float)
     #cryptoconcurrencies.dataFrame['Market Cap'].astype(float)
-    
-    print(' ')
-    print(cryptoName)
-    cryptoconcurrencies.showBasicInfo()
+    df=cryptoconcurrencies.dataFrame
+    df['Date'] = pd.to_datetime(df['Date'])
+    #df['Date']=df['Date'].apply((lambda x:datetime.datetime.strptime(str(x),'%Y%m%d:%H:%M:%S'))) 
+   # print(' ')
+    #print(cryptoName)
+    #cryptoconcurrencies.showBasicInfo()
