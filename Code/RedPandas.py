@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Nov 05 20:42:55 2017
-
 @author: Edu
 """
 
@@ -17,6 +16,7 @@ For this library you will need:
 '''
 import pandas as pd
 from Bamboo import Bamboo
+from Report import Report
 
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -24,6 +24,8 @@ import numpy as np
 from scipy.stats.stats import pearsonr
 
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 
 from sklearn.cross_validation import cross_val_score
@@ -37,7 +39,6 @@ from subprocess import check_call
 from tabulate import tabulate
 '''
 Returns dataFrame and features in that order
-
 name is the name of the database 'x.csv'
 target is a string with the name of the target feature
 '''
@@ -54,8 +55,6 @@ def loadDataCSV(name,
                 na_values=None):
     # load data
     dataFrame = pd.read_csv(name, na_values=na_values, thousands=thousands)
-
-    #TODO Replace fake nulls
     
     if target != NONE:
         
@@ -79,48 +78,46 @@ def loadDataCSV(name,
         dataFrame.fillna(0, inplace=True)
         #TODO Develop dropping rows
 
-    return Bamboo(dataFrame, list(dataFrame.head(0)), target, list(n_nulls))
-    
-'''
-dataFrame is a panda dataFrame
-features is a string list with the features of the dataFrame that are going
-         to be taken into account
-target is a string with the name of the target feature
-''' 
+    return Bamboo(name, dataFrame, list(dataFrame.head(0)), target, list(n_nulls))
 
-def setupDecisionTreeRegressor(dataFrame, features, target, criterion, 
-                               max_depth, random_state):
+#Returns an array with the bamboos divided by the feature selected
+    #https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.groupby.html
+    #https://pandas.pydata.org/pandas-docs/stable/groupby.html
+def divideDataFrame(bamboo, feature):
+    df = bamboo.dataFrame
     
-    regressor = DecisionTreeRegressor(criterion=criterion, max_depth=max_depth, 
-                                      random_state=random_state)
+    dataFrameList = []
+    dataFrameList = [x for _, x in df.groupby(df[feature], axis=0, sort=False)]
+    bambooList = []
+    count = 1
+    for dataFrame in dataFrameList:
+        name = bamboo.name + "_div"+str(count)
+        bambooDivided = Bamboo(name,dataFrame, bamboo.features, bamboo.target, bamboo.n_nulls)
+        bambooList.append(bambooDivided)
+        count = count + 1
+        
+    return bambooList
     
-    regressor.fit(dataFrame[features], dataFrame[target])
-    return regressor
-
-def showInfoRelevancies(features, regressor):
-    print tabulate(zip(features, regressor.feature_importances_),
-                   headers=["Feature","Relevancy"])
-    
-def correlationFeaturesTarget(dataFrame, features, target):
+def correlationFeaturesTarget(bamboo):
     # NOTE: Low correlation means there's no linear relationship; 
     # it doesn't mean there's no information in the feature that predicts the target.
     corr = []
 
-    for feature in features:
-        local_corr = pearsonr(dataFrame[feature], dataFrame[target])[0]
+    for feature in bamboo.features:
+        local_corr = pearsonr(bamboo.dataFrame[feature], bamboo.dataFrame[bamboo.target])[0]
         corr.append(local_corr)
 
-    y_pos = np.arange(len(features))
+    y_pos = np.arange(len(bamboo.features))
  
     plt.bar(y_pos, corr, align='center', alpha=0.5)
-    plt.xticks(y_pos, features, rotation='vertical')
+    plt.xticks(y_pos, bamboo.features, rotation='vertical')
     plt.ylabel('Correlation')
     plt.title('Correlation features vs target')
 
     plt.show()
     
-def visualizeTree(regressor, features, out_file):
-    dot_data = export_graphviz(regressor, out_file=out_file, feature_names=features, 
+def visualizeTree(bamboo, out_file):
+    dot_data = export_graphviz(bamboo.regressor, out_file=out_file, feature_names=bamboo.features, 
                            filled=True, rounded=True)
     graph = graphviz.Source(dot_data)
     check_call(['dot','-Tpng',out_file,'-o','tree.png'])
@@ -132,14 +129,14 @@ def visualizeTree(regressor, features, out_file):
 Function used to check overfitting mainly
 NEEDS MORE STUDY
 '''
-def computeMax(dataFrame, features, target):
+def computeMax(bamboo):
     # Compute the max 
     mae = []
     for i in range(2, 30):
         regressor = DecisionTreeRegressor(max_depth=i)
-        regressor.fit(dataFrame[features], dataFrame[target])
-        pred_values = regressor.predict(dataFrame[features])
-        maev = mean_absolute_error(dataFrame[target],pred_values)
+        regressor.fit(bamboo.dataFrame[bamboo.features], bamboo.dataFrame[bamboo.target])
+        pred_values = regressor.predict(bamboo.dataFrame[bamboo.features])
+        maev = mean_absolute_error(bamboo.dataFrame[bamboo.target],pred_values)
         mae.append(maev)
 
     # Plot mae   
@@ -151,37 +148,55 @@ def computeMax(dataFrame, features, target):
 '''
 Function used to check the most desirable depth with a CrossValidation method
 '''
-from sklearn import neighbors
 
-def crossValidation(dataFrame, features, target, 
-                    mode='DecisionTree', weights='uniform'):
+def crossValidation(bamboo, mode='DecisionTree', weights='uniform',
+                                                n_estimators=0,
+                                                min_range=2,
+                                                max_range=30,
+                                                printGraph=True,
+                                                criterion='mae'):
     total_scores = []
 
     if mode == 'DecisionTree':
             print 'Decision Tree CV test'
+    
+    elif mode == 'RandomForest':
+            print 'Random Forest CV test with '+str(n_estimators)+' n_estimators'
             
     elif mode == 'KNN':
             print 'KNN CV test with '+weights+' weight'
             
-    for i in range(2, 30):
+    for i in range(min_range, max_range):
         if mode == 'DecisionTree':
             regressor = DecisionTreeRegressor(max_depth=i)
-            regressor.fit(dataFrame[features], dataFrame[target])
+            regressor.fit(bamboo.dataFrame[bamboo.features], 
+                          bamboo.dataFrame[bamboo.target])
+        
+        elif mode == 'RandomForest':
+            regressor = RandomForestRegressor(n_estimators=n_estimators, max_depth = i, 
+                                             criterion=criterion, random_state=0)
+            regressor.fit(bamboo.dataFrame[bamboo.features], 
+                          bamboo.dataFrame[bamboo.target])
             
         elif mode == 'KNN':
-            regressor = neighbors.KNeighborsRegressor(i, weights=weights)
-            regressor.fit(dataFrame[features], dataFrame[target])
+            regressor = KNeighborsRegressor(i, weights=weights)
+            regressor.fit(bamboo.dataFrame[bamboo.features], 
+                          bamboo.dataFrame[bamboo.target])
             
-        scores = -cross_val_score(regressor, dataFrame[features],
-            dataFrame[target], scoring='neg_mean_absolute_error', cv=10)
+        scores = -cross_val_score(regressor, bamboo.dataFrame[bamboo.features],
+            bamboo.dataFrame[bamboo.target], scoring='neg_mean_absolute_error', 
+            cv=10)
+        
         total_scores.append(scores.mean())
 
-    plt.plot(range(2,30), total_scores, marker='o')
-    plt.xlabel('max_depth')
-    plt.ylabel('cv score')
-    plt.legend()
-    plt.show()    
-
+    if printGraph == True:
+        plt.plot(range(min_range,max_range), total_scores, marker='o')
+        plt.xlabel('max_depth')
+        plt.ylabel('cv score')
+        plt.legend()
+        plt.show()
+    
+    return total_scores
 '''
 Function used to check a CV scatter plot of the relevancies used to create
          a decision tree to see how they fit the data
@@ -192,8 +207,12 @@ target is a string with the name of the target feature
 relevancies is 2 dimensional array which correspond with the name of a feature
             and with the % of how relevant is it
 '''
-def relevantFeaturesCrossValidation(dataFrame, features, regressor, target):
-
+def relevantFeaturesCrossValidation(bamboo):
+    
+    dataFrame = bamboo.dataFrame
+    features = bamboo.features
+    regressor = bamboo.regressor
+    target = bamboo.target
     plt.figure(figsize=(8,6))
     relevancies = zip(features, regressor.feature_importances_)
     
@@ -213,4 +232,4 @@ def relevantFeaturesCrossValidation(dataFrame, features, regressor, target):
             plt.xlabel(relevancy[0])
             plt.ylabel(target)
             plt.legend()
-            plt.show()    
+            plt.show()  
