@@ -46,6 +46,8 @@ for moneda in monedas:
         #print coso.dataFrame['Name'].iloc[0]
         if coso.dataFrame['Name'].iloc[0] ==moneda:
             cdf=coso.dataFrame
+            cdf['Date'] =pd.to_datetime(cdf.Date)
+            cdf.sort_values(by='Date', inplace=True)
             xx=np.stack(i for i in range(len(cdf)))
             plt.plot(xx,cdf['Market Cap'],c='g',label='Market Cap')
             plt.axis('tight')
