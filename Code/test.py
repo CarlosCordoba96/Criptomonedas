@@ -41,12 +41,13 @@ for moneda in monedas:
     
     for coso in bambooList:
         #print coso.dataFrame['Name'].iloc[0]
-        if coso.dataFrame['Name'].iloc[0] ==moneda:
+        if coso.dataFrame['Name'].iloc[0] == moneda:
             cdf=coso.dataFrame
             
             cdf['Date'] =pd.to_datetime(cdf.Date)
             cdf.sort_values(by='Date', inplace=True)
-            
+
+            cdf.index = pd.DatetimeIndex(cdf['Date'])            
             # Aplicando el filtro Hodrick-Prescott para separar en tendencia y 
             # componente ciclico.
             cdf_ciclo, cdf_tend = sm.tsa.filters.hpfilter(cdf['Market Cap'])
@@ -56,6 +57,24 @@ for moneda in monedas:
             # graficando la variacion del precio real con la tendencia.
             cdf[['Market Cap', 'tend']].plot(figsize=(10, 8), fontsize=12);
             legend = plt.legend()
+            plt.title(moneda)
             legend.prop.set_size(14);
+
+            # Ejemplo de descomposición de serie de tiempo
+            descomposicion = sm.tsa.seasonal_decompose(cdf['Market Cap'],
+                                                  model='additive', freq=30)  
+            fig = descomposicion.plot()            
+
+            variacion_diaria = cdf['Close'] / cdf['Close'].shift(1) - 1
+            cdf['var_diaria'] = variacion_diaria
+            cdf['var_diaria'][:5]
+            
+            # modelo ARIMA sobre variación diaria
+            modelo = sm.tsa.ARIMA(cdf['var_diaria'].iloc[1:], order=(1, 0, 0))  
+            resultados = modelo.fit(disp=-1)  
+            cdf['prediccion'] = resultados.fittedvalues  
+            plot = cdf[['var_diaria', 'prediccion']].plot(figsize=(10, 8)) 
+
+
 
             print coso.dataFrame
