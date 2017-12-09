@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Nov 23 15:54:58 2017
+
 @author: Edu
+
 Description:
     
 Bamboo is a Pandas DataFrame wrapper used for RedPandas. In adition of having
 the raw DataFrame, it also stores aditionally information.
+
 A Bamboo object contains:
     A pandas DataFrame "dataFrame" which represents the dataset.
     
@@ -36,7 +39,7 @@ class Bamboo:
         self.reports = []
         self.regressor = None
         
-    def reportBasicInfo(self):
+    def reportBasicInfo(self, printOnScreen=True):
         
         featuresType = []
         featuresMin = []
@@ -62,14 +65,18 @@ class Bamboo:
                     headers=["Feature","Type","Min","Max","Mean","Num Nulls"],
                     typeReport='Basic')
         
+        if printOnScreen:
+            report.showReport();
         self.reports.append(report)
     
-    def reportInfoRelevancies(self):
+    def reportInfoRelevancies(self, printOnScreen=True):
         name = 'RelevanciesInfo'+str(self.numberOfReports('Relevancies')+1)
         report = Report(name,
                     cols = zip(self.features, self.regressor.feature_importances_),
                     headers=["Feature","Relevancy"],
                     typeReport='Relevancies')
+        if printOnScreen:
+            report.showReport();
         self.reports.append(report)
     
     def setupRegressor(self, 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Nov 05 20:42:55 2017
+
 @author: Edu
 """
 
@@ -39,6 +40,7 @@ from subprocess import check_call
 from tabulate import tabulate
 '''
 Returns dataFrame and features in that order
+
 name is the name of the database 'x.csv'
 target is a string with the name of the target feature
 '''
@@ -145,6 +147,33 @@ def computeMax(bamboo):
     plt.ylabel('mae')
     plt.show()
 
+def computeErrorMeasure(bamboo, printGraph=True):
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(bamboo.dataFrame[bamboo.features], 
+                                                    bamboo.dataFrame[bamboo.target], 
+                                                    test_size=0.4)
+
+    bamboo.regressor.fit(X_train, y_train)
+
+    # Test
+    y_pred = bamboo.regressor.predict(X_test)
+
+    # metrics calculation 
+    from sklearn.metrics import mean_absolute_error
+    mae = mean_absolute_error(y_test,y_pred)
+    print "Error Measure ", mae
+
+    if printGraph:
+        import matplotlib.pyplot as plt
+        xx = np.stack(i for i in range(len(y_test)))
+        plt.plot(xx, y_test, c='r', label='Data')
+        plt.plot(xx, y_pred, c='b', label='Prediction')
+        plt.axis('tight')
+        plt.legend()
+        plt.title("Prediction vs Data")
+
+        plt.show()
+    
 '''
 Function used to check the most desirable depth with a CrossValidation method
 '''
@@ -232,4 +261,4 @@ def relevantFeaturesCrossValidation(bamboo):
             plt.xlabel(relevancy[0])
             plt.ylabel(target)
             plt.legend()
-            plt.show()  
+            plt.show()    

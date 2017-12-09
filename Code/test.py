@@ -14,9 +14,6 @@ from os import listdir
 from os.path import isfile, join
 import matplotlib.pyplot as plt
 
-
-
-
 mypath = 'Top100/'
 cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
