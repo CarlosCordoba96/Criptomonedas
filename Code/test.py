@@ -13,6 +13,7 @@ import datetime
 from os import listdir
 from os.path import isfile, join
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 
 mypath = 'Top100/'
 cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -32,7 +33,6 @@ for cryptoName in cryptoconcurrenciesName:
     df=df.fillna(cryptoName[0:-4])
     
     
-    
 monedas=['Bitcoin','Ethereum','Monero']
 
 bamboo = Bamboo('Coins', df, columns, target='Market Cap')
@@ -43,11 +43,19 @@ for moneda in monedas:
         #print coso.dataFrame['Name'].iloc[0]
         if coso.dataFrame['Name'].iloc[0] ==moneda:
             cdf=coso.dataFrame
+            
             cdf['Date'] =pd.to_datetime(cdf.Date)
             cdf.sort_values(by='Date', inplace=True)
-            xx=np.stack(i for i in range(len(cdf)))
-            plt.plot(xx,cdf['Market Cap'],c='g',label='Market Cap')
-            plt.axis('tight')
-            plt.title("Market Cap "+moneda)
-            plt.show()
+            
+            # Aplicando el filtro Hodrick-Prescott para separar en tendencia y 
+            # componente ciclico.
+            cdf_ciclo, cdf_tend = sm.tsa.filters.hpfilter(cdf['Market Cap'])
+            cdf['tend'] = cdf_tend
+
+
+            # graficando la variacion del precio real con la tendencia.
+            cdf[['Market Cap', 'tend']].plot(figsize=(10, 8), fontsize=12);
+            legend = plt.legend()
+            legend.prop.set_size(14);
+
             print coso.dataFrame
