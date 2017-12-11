@@ -15,6 +15,14 @@ from os.path import isfile, join
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
+
+def finlt(vbegin, row, perc): #perc es el porcentaje de variación para pertenecer a la misma lt
+    market_c = row['Market Cap']
+    market_c = abs(vbegin - market_c)   #Deriva posible
+    vbegin = vbegin * perc
+    return (market_c > vbegin)
+
+
 mypath = 'Top100/'
 cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
@@ -92,6 +100,7 @@ for moneda in monedas:
             vacia = True
             volume = 0
             acum = 0
+            cont = 0
             for index, row in cdf.iterrows():
                 if (vacia):
                     dbegin = row['Date']
@@ -99,12 +108,13 @@ for moneda in monedas:
                     vacia = False
                 volume = volume + row['Volume']
                 acum = acum + row['Market Cap']
-                if (finlt()):
+                if (finlt(vbegin, row, 0.15)):
                     dend = row['Date']
                     vend = row['Market Cap']
-                    cont = dend - dbegin
+                    cont = cont + 1
                     mean = acum/cont
                     temporal = [dbegin,dend,vbegin,vend,volume,mean]
+                    print(temporal)
                     dl.append(temporal)
                     
                     #Inicializacion a 0
@@ -112,12 +122,7 @@ for moneda in monedas:
                     vacia = True
                     volume = 0
                     acum = 0
+                    cont = 0
+                                 
                     
-                    
-                    
-                    
-                
-                
-                
-                
                 
