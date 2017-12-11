@@ -21,6 +21,9 @@ cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))
 columns = ['Name','Date','Open', 'High','Low','Close','Volume','Market Cap']
 df={}
 df=pd.DataFrame(columns=columns)
+col_time = ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
+dl={}
+dl=pd.DataFrame(columns=col_time)
 print cryptoconcurrenciesName
 for cryptoName in cryptoconcurrenciesName:
     file = mypath + cryptoName
@@ -33,7 +36,7 @@ for cryptoName in cryptoconcurrenciesName:
     df=df.fillna(cryptoName[0:-4])
     
     
-monedas=['Bitcoin','Ethereum','Monero']
+monedas=['Bitcoin']#,'Ethereum','Monero']
 
 bamboo = Bamboo('Coins', df, columns, target='Market Cap')
 bambooList = rp.divideDataFrame(bamboo, 'Name')
@@ -59,10 +62,15 @@ for moneda in monedas:
             legend = plt.legend()
             plt.title(moneda)
             legend.prop.set_size(14);
+            
+            #Añadido por moi
+            descomposition = sm.tsa.seasonal_decompose(cdf['Market Cap'],
+                                                       model = 'additive', freq = 30)
+            fig = descomposition.plot()
 
             # Ejemplo de descomposición de serie de tiempo
             descomposicion = sm.tsa.seasonal_decompose(cdf['Market Cap'],
-                                                  model='additive', freq=30)  
+                                                  model='additive', freq=365)  
             fig = descomposicion.plot()            
 
             variacion_diaria = cdf['Close'] / cdf['Close'].shift(1) - 1
@@ -75,6 +83,41 @@ for moneda in monedas:
             cdf['prediccion'] = resultados.fittedvalues  
             plot = cdf[['var_diaria', 'prediccion']].plot(figsize=(10, 8)) 
 
-
-
             print coso.dataFrame
+            
+####INTENTO DE LINEAS TEMPORALES
+#            ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
+            
+            temporal = []
+            vacia = True
+            volume = 0
+            acum = 0
+            for index, row in cdf.iterrows():
+                if (vacia):
+                    dbegin = row['Date']
+                    vbegin = row['Market Cap']
+                    vacia = False
+                volume = volume + row['Volume']
+                acum = acum + row['Market Cap']
+                if (finlt()):
+                    dend = row['Date']
+                    vend = row['Market Cap']
+                    cont = dend - dbegin
+                    mean = acum/cont
+                    temporal = [dbegin,dend,vbegin,vend,volume,mean]
+                    dl.append(temporal)
+                    
+                    #Inicializacion a 0
+                    temporal = []
+                    vacia = True
+                    volume = 0
+                    acum = 0
+                    
+                    
+                    
+                    
+                
+                
+                
+                
+                
