@@ -178,7 +178,8 @@ for moneda in monedas:
             initial = True
             for aux in aux_temporal:
                 if initial:
-                    ax = aux['Market Cap'].plot()
+                    ax = aux.plot()
                     initial = False
-                ax = aux['Market Cap'].plot(ax=ax)
+                if (aux.empty==False):
+                    ax = aux.plot(ax=ax)
                 
