@@ -18,9 +18,36 @@ import statsmodels.api as sm
 
 def finlt(vbegin, row, perc): #perc es el porcentaje de variación para pertenecer a la misma lt
     market_c = row['Market Cap']
-    market_c = abs(vbegin - market_c)   #Deriva posible
-    vbegin = vbegin * perc
-    return (market_c > vbegin)
+    variance = abs(vbegin - market_c)   #Deriva posible
+    umbral = vbegin * perc
+    return (variance > umbral)
+
+def findtype(vbegin, vend):
+    diff = vbegin - vend
+    perc1 = vbegin * 0.05
+    perc2 = vbegin * 0.10
+    perc3 = vbegin * 0.15
+    if (diff > 0):
+        if (diff <= perc1):
+            ltype = 1
+        elif (diff <= perc2):
+            ltype = 2
+        elif (diff <= perc3):
+            ltype = 3
+        else:
+            ltype = 4
+    else:
+        diff = abs(diff)
+        if (diff <= perc1):
+            ltype = 5
+        elif (diff <= perc2):
+            ltype = 6
+        elif (diff <= perc3):
+            ltype = 7
+        else:
+            ltype = 8
+    
+    return ltype
 
 
 mypath = 'Top100/'
@@ -29,9 +56,11 @@ cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))
 columns = ['Name','Date','Open', 'High','Low','Close','Volume','Market Cap']
 df={}
 df=pd.DataFrame(columns=columns)
-col_time = ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
+
+col_time = ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean', 'Type']
 dl={}
 dl=pd.DataFrame(columns=col_time)
+
 print cryptoconcurrenciesName
 for cryptoName in cryptoconcurrenciesName:
     file = mypath + cryptoName
@@ -96,6 +125,7 @@ for moneda in monedas:
 ####INTENTO DE LINEAS TEMPORALES
 #            ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
             
+            l_temporal = []
             temporal = []
             vacia = True
             volume = 0
@@ -108,14 +138,16 @@ for moneda in monedas:
                     vacia = False
                 volume = volume + row['Volume']
                 acum = acum + row['Market Cap']
-                if (finlt(vbegin, row, 0.15)):
+                if (finlt(vbegin, row, 0.3)):
                     dend = row['Date']
                     vend = row['Market Cap']
                     cont = cont + 1
                     mean = acum/cont
-                    temporal = [dbegin,dend,vbegin,vend,volume,mean]
-                    print(temporal)
-                    dl.append(temporal)
+                    ltype = findtype(vbegin,vend)
+                    temporal = [dbegin,dend,vbegin,vend,volume,mean,ltype]
+#                    print(temporal)
+#                    dl.append(temporal)
+                    l_temporal.append(temporal)
                     
                     #Inicializacion a 0
                     temporal = []
@@ -123,6 +155,6 @@ for moneda in monedas:
                     volume = 0
                     acum = 0
                     cont = 0
-                                 
+                                                
                     
                 
