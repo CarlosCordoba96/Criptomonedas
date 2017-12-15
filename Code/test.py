@@ -15,37 +15,48 @@ from os.path import isfile, join
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
+p1 = 0.2
+p2 = 0.3
+p3 = 0.4
 
-def finlt(vbegin, row, perc): #perc es el porcentaje de variación para pertenecer a la misma lt
-    market_c = row['Market Cap']
-    variance = abs(vbegin - market_c)   #Deriva posible
-    umbral = vbegin * perc
-    return (variance > umbral)
+def change_mc (initial_mc, vend):
+    diff = abs(initial_mc - vend)
+    part = initial_mc * p3
+    return (diff > part)
+
+def finlt(vbegin, vend): #perc es el porcentaje de variación para pertenecer a la misma lt
+    diff = abs(vbegin - vend)   #Deriva posible
+    umbral1 = vbegin * p1
+    umbral2 = vbegin * p2
+    umbral3 = vbegin * p3
+    if (diff > umbral1 or diff > umbral2 or diff > umbral3):
+        return True
 
 def findtype(vbegin, vend):
+    ltype = 0
     diff = vbegin - vend
-    perc1 = vbegin * 0.05
-    perc2 = vbegin * 0.10
-    perc3 = vbegin * 0.15
-    if (diff > 0):
-        if (diff <= perc1):
-            ltype = 1
-        elif (diff <= perc2):
-            ltype = 2
-        elif (diff <= perc3):
-            ltype = 3
-        else:
-            ltype = 4
-    else:
+    part1 = vbegin * p1
+    part2 = vbegin * p2
+    part3 = vbegin * p3
+    if (diff <= 0):     #End > Begin -> SUBE
         diff = abs(diff)
-        if (diff <= perc1):
+        if (diff <= part1):
+            ltype = 1
+        elif (diff <= part2):
+            ltype = 2
+        elif (diff <= part3):
+            ltype = 3
+        elif (diff > part3):
+            ltype = 4
+    else:               #End < Begin -> BAJA
+        if (diff <= part1):
+            ltype = 1
+        elif (diff <= part2):
             ltype = 5
-        elif (diff <= perc2):
+        elif (diff <= part3):
             ltype = 6
-        elif (diff <= perc3):
+        elif (diff > part3):
             ltype = 7
-        else:
-            ltype = 8
     
     return ltype
 
@@ -57,7 +68,7 @@ columns = ['Name','Date','Open', 'High','Low','Close','Volume','Market Cap']
 df={}
 df=pd.DataFrame(columns=columns)
 
-col_time = ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean', 'Type']
+col_time = ['DBegin', 'DEnd', 'Type', 'VBegin', 'VEnd', 'Volume', 'Mean']
 dl={}
 dl=pd.DataFrame(columns=col_time)
 
@@ -80,7 +91,7 @@ bambooList = rp.divideDataFrame(bamboo, 'Name')
 for moneda in monedas:
     
     for coso in bambooList:
-        #print coso.dataFrame['Name'].iloc[0]
+#        print coso.dataFrame['Name'].iloc[0]
         if coso.dataFrame['Name'].iloc[0] == moneda:
             cdf=coso.dataFrame
             
@@ -122,15 +133,18 @@ for moneda in monedas:
 
             print coso.dataFrame
             
-####INTENTO DE LINEAS TEMPORALES
-#            ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
+###INTENTO DE LINEAS TEMPORALES
+            ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
             
             l_temporal = []
+            aux_temporal = []
             temporal = []
             vacia = True
             volume = 0
             acum = 0
             cont = 0
+            initial_mc = cdf['Market Cap'].iloc[0]  #Toma el MC en el momento de entrada a mercado
+
             for index, row in cdf.iterrows():
                 if (vacia):
                     dbegin = row['Date']
@@ -138,13 +152,17 @@ for moneda in monedas:
                     vacia = False
                 volume = volume + row['Volume']
                 acum = acum + row['Market Cap']
-                if (finlt(vbegin, row, 0.3)):
+                vend = row['Market Cap']
+                
+                if (finlt(initial_mc, vend)):
                     dend = row['Date']
-                    vend = row['Market Cap']
                     cont = cont + 1
                     mean = acum/cont
-                    ltype = findtype(vbegin,vend)
-                    temporal = [dbegin,dend,vbegin,vend,volume,mean,ltype]
+                    ltype = findtype(initial_mc,vend)
+                    if (change_mc(initial_mc, vend)):
+                        initial_mc = vbegin
+                        print(initial_mc)
+                    temporal = [dbegin,dend,ltype,vbegin,vend,volume,mean]
 #                    print(temporal)
 #                    dl.append(temporal)
                     l_temporal.append(temporal)
@@ -156,5 +174,11 @@ for moneda in monedas:
                     acum = 0
                     cont = 0
                                                 
-                    
+                    aux_temporal.append(cdf[(pd.to_datetime(cdf.index) > dbegin) & (pd.to_datetime(cdf.index) < dend)])
+            initial = True
+            for aux in aux_temporal:
+                if initial:
+                    ax = aux['Market Cap'].plot()
+                    initial = False
+                ax = aux['Market Cap'].plot(ax=ax)
                 
