@@ -103,36 +103,36 @@ for moneda in monedas:
             cdf.index = pd.DatetimeIndex(cdf['Date'])
             # Aplicando el filtro Hodrick-Prescott para separar en tendencia y
             # componente ciclico.
-            cdf_ciclo, cdf_tend = sm.tsa.filters.hpfilter(cdf['Market Cap'])
-            cdf['tend'] = cdf_tend
-
-            # graficando la variacion del precio real con la tendencia.
-            cdf[['Market Cap', 'tend']].plot(figsize=(10, 8), fontsize=12);
-            legend = plt.legend()
-            plt.title(moneda)
-            legend.prop.set_size(14);
-
-            # Añadido por moi
-            descomposition = sm.tsa.seasonal_decompose(cdf['Market Cap'],
-                                                       model='additive', freq=30)
-            fig = descomposition.plot()
-
-            # Ejemplo de descomposición de serie de tiempo
-            descomposicion = sm.tsa.seasonal_decompose(cdf['Market Cap'],
-                                                       model='additive', freq=365)
-            fig = descomposicion.plot()
-
-            variacion_diaria = cdf['Close'] / cdf['Close'].shift(1) - 1
-            cdf['var_diaria'] = variacion_diaria
-            cdf['var_diaria'][:5]
-
-            # modelo ARIMA sobre variación diaria
-            modelo = sm.tsa.ARIMA(cdf['var_diaria'].iloc[1:], order=(1, 0, 0))
-            resultados = modelo.fit(disp=-1)
-            cdf['prediccion'] = resultados.fittedvalues
-            plot = cdf[['var_diaria', 'prediccion']].plot(figsize=(10, 8))
-
-            print coso.dataFrame
+#            cdf_ciclo, cdf_tend = sm.tsa.filters.hpfilter(cdf['Market Cap'])
+#            cdf['tend'] = cdf_tend
+#
+#            # graficando la variacion del precio real con la tendencia.
+#            cdf[['Market Cap', 'tend']].plot(figsize=(10, 8), fontsize=12);
+#            legend = plt.legend()
+#            plt.title(moneda)
+#            legend.prop.set_size(14);
+#
+#            # Añadido por moi
+#            descomposition = sm.tsa.seasonal_decompose(cdf['Market Cap'],
+#                                                       model='additive', freq=30)
+#            fig = descomposition.plot()
+#
+#            # Ejemplo de descomposición de serie de tiempo
+#            descomposicion = sm.tsa.seasonal_decompose(cdf['Market Cap'],
+#                                                       model='additive', freq=365)
+#            fig = descomposicion.plot()
+#
+#            variacion_diaria = cdf['Close'] / cdf['Close'].shift(1) - 1
+#            cdf['var_diaria'] = variacion_diaria
+#            cdf['var_diaria'][:5]
+#
+#            # modelo ARIMA sobre variación diaria
+#            modelo = sm.tsa.ARIMA(cdf['var_diaria'].iloc[1:], order=(1, 0, 0))
+#            resultados = modelo.fit(disp=-1)
+#            cdf['prediccion'] = resultados.fittedvalues
+#            plot = cdf[['var_diaria', 'prediccion']].plot(figsize=(10, 8))
+#
+#            print coso.dataFrame
 
             ###INTENTO DE LINEAS TEMPORALES
             ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
@@ -187,8 +187,14 @@ for moneda in monedas:
                 pd.to_datetime(cdf.index) <= pd.to_datetime(l[-1]))])
 
             initial = True
-            for aux in aux_temporal:
-                ax = aux['Market Cap'].plot()
+            for aux in aux_carlos:
+                if initial:
+                    ax = aux['Market Cap'].plot()
+                    initial=False
+                    print aux['Market Cap']
+                else:
+                    aux['Market Cap'].plot(ax=ax)
+                    print aux['Market Cap']
 
 
 
