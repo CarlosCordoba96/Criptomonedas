@@ -15,6 +15,7 @@ from os.path import isfile, join
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
+
 p1 = 0.2
 p2 = 0.3
 p3 = 0.4
