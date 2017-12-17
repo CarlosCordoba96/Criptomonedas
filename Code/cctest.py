@@ -18,6 +18,7 @@ import statsmodels.api as sm
 p1 = 0.2
 p2 = 0.3
 p3 = 0.4
+initial_mc = 0
 
 def change_mc(initial_mc, vend):
     diff = abs(initial_mc - vend)
@@ -45,7 +46,6 @@ def findtype(vbegin, vend):
     if (diff <= 0):  # End > Begin -> SUBE
         diff = abs(diff)
         if (diff <= part1):
-            
             ltype = 1
         elif (diff <= part2):
             ltype = 2
@@ -168,7 +168,7 @@ for moneda in monedas:
                         if (change_mc(initial_mc, vend)):
                             initial_mc = vbegin
                             print(initial_mc)
-                        temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean]
+                        temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean, initial_mc]
                         #                    print(temporal)
                         #                    dl.append(temporal)
                         l_temporal.append(temporal)
@@ -189,19 +189,23 @@ for moneda in monedas:
                 aux_carlos.append(cdf[(pd.to_datetime(cdf.index) >= pd.to_datetime(l[0])) & (
                 pd.to_datetime(cdf.index) <= pd.to_datetime(l[-1]))])
 
-            initial = True
+            this_ltemporal = []
             for aux in aux_temporal:
                 ax = aux['Market Cap']
+                ax2 = aux['Date']
                 # Type 1: r (red) Type 2: g (green)
                 # Type 3: y (yellow) Type 4: k (black)
                 # Type 5: m (magenta) Type 6: c (cyan)
                 # Type 7: b (blue)
                 typeTemp = findtype(ax[0], ax[-1])
                 if typeTemp==1:
+                    #Estable, no sube ni baja
                     ax.plot(c='r')
                 elif typeTemp==2:
+                    #Subir por encima del primer umbral
                     ax.plot(c='g')
                 elif typeTemp==3:
+                    #Subir por encima del segundo umbral
                     ax.plot(c='y')
                 elif typeTemp==4:
                     ax.plot(c='k')
@@ -211,4 +215,12 @@ for moneda in monedas:
                     ax.plot(c='c')
                 elif typeTemp==7:
                     ax.plot(c='b')
-                    
+                
+                for ltemporal in l_temporal:
+                    if ax2[0] == ltemporal[0]:
+                        this_ltemporal = ltemporal
+                        break
+                     
+                aux['Market Cap'] = this_ltemporal[7]
+    
+                aux['Market Cap'].plot(c='k')
