@@ -44,6 +44,7 @@ def findtype(vbegin, vend):
     if (diff <= 0):  # End > Begin -> SUBE
         diff = abs(diff)
         if (diff <= part1):
+            
             ltype = 1
         elif (diff <= part2):
             ltype = 2
@@ -188,7 +189,24 @@ for moneda in monedas:
 
             initial = True
             for aux in aux_temporal:
-                ax = aux['Market Cap'].plot()
-
-
-
+                ax = aux['Market Cap']
+                # Type 1: r (red) Type 2: g (green)
+                # Type 3: y (yellow) Type 4: k (black)
+                # Type 5: m (magenta) Type 6: c (cyan)
+                # Type 7: b (blue)
+                typeTemp = findtype(ax[0], ax[-1])
+                if typeTemp==1:
+                    ax.plot(c='r')
+                elif typeTemp==2:
+                    ax.plot(c='g')
+                elif typeTemp==3:
+                    ax.plot(c='y')
+                elif typeTemp==4:
+                    ax.plot(c='k')
+                elif typeTemp==5:
+                    ax.plot(c='m')
+                elif typeTemp==6:
+                    ax.plot(c='c')
+                elif typeTemp==7:
+                    ax.plot(c='b')
+                    
