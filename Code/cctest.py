@@ -15,10 +15,9 @@ from os.path import isfile, join
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
-p1 = 0.2
+p1 = 0.05
 p2 = 0.3
 p3 = 0.4
-initial_mc = 0
 
 def change_mc(initial_mc, vend):
     diff = abs(initial_mc - vend)
@@ -26,44 +25,75 @@ def change_mc(initial_mc, vend):
     return (diff > part)
 
 
-def finlt(vbegin, vend):  # perc es el porcentaje de variación para pertenecer a la misma lt
+def finlt(vbegin, vend, STATE):  # perc es el porcentaje de variación para pertenecer a la misma lt
     diff = abs(vbegin - vend)  # Deriva posible
     umbral1 = vbegin * p1
     umbral2 = vbegin * p2
     umbral3 = vbegin * p3
-    if (diff > umbral1 or diff > umbral2 or diff > umbral3):
+    if (
+        ((diff > umbral1) and (STATE=='P0' or STATE=='P4' or STATE=='P5')) 
+    
+        or ((diff > umbral2) and (STATE=='P1' or STATE=='P3' or STATE=='P8' or STATE=='P7')) 
+        
+        or ((diff > umbral3) and (STATE=='P2' or STATE=='P6'))
+        ):
         return True
     else:
         return False
 
 
-def findtype(vbegin, vend):
+def findtype(vbegin, vend, STATE):
     ltype = 0
     diff = vbegin - vend
-    part1 = vbegin * p1
-    part2 = vbegin * p2
-    part3 = vbegin * p3
+    percentagePart1 = vbegin * p1
+    percentagePart2 = vbegin * p2
+    percentagePart3 = vbegin * p3
+    
+    part1plus = vbegin + percentagePart1
+    part2plus = vbegin + percentagePart2
+    part3plus = vbegin + percentagePart3
+    
+    part1minus = vbegin - percentagePart1
+    part2minus = vbegin - percentagePart2
+    part3minus = vbegin - percentagePart3
+    
     if (diff <= 0):  # End > Begin -> SUBE
         diff = abs(diff)
-        if (diff <= part1):
+        if (diff <= part1plus and (STATE=='P0' or STATE=='P5' or STATE=='P4')):
             ltype = 1
-        elif (diff <= part2):
+            STATE='P1'
+        elif (diff <= part2plus and (STATE=='P1' or STATE=='P3')):
             ltype = 2
-        elif (diff <= part3):
-            ltype = 3
-        elif (diff >= part3):
-            ltype = 4
-    else:  # End < Begin -> BAJA
-        if (diff <= part1):
-            ltype = 1
-        elif (diff <= part2):
-            ltype = 5
-        elif (diff <= part3):
-            ltype = 6
-        elif (diff >= part3):
+            STATE='P2'
+        elif (diff <= part2minus and STATE=='P6'):
             ltype = 7
+            STATE='P7'
+        elif (diff <= part1minus and (STATE=='P7' or STATE=='P8')):
+            ltype = 5
+            STATE= 'P5'
+        elif (diff <= part3plus and (STATE=='P2')):
+            ltype = 0
+            STATE= 'P0'
+            
+    else:  # End < Begin -> BAJA
+        
+        if (diff <= part1minus and (STATE=='P0' or STATE=='P5' or STATE=='P4')):
+            ltype = 8
+            STATE='P8'
+        elif (diff <= part2minus and (STATE=='P8' or STATE=='P7')):
+            ltype = 6
+            STATE='P6'
+        elif (diff <= part2plus and STATE=='P2'):
+            ltype = 3
+            STATE='P3'
+        elif (diff <= part1plus and (STATE=='P3' or STATE=='P1')):
+            ltype = 4
+            STATE= 'P4'
+        elif (diff <= part3minus and (STATE=='P6')):
+            ltype = 0
+            STATE= 'P0'
 
-    return ltype
+    return ltype, STATE
 
 
 mypath = 'Top100/'
@@ -108,31 +138,7 @@ for moneda in monedas:
             cdf_ciclo, cdf_tend = sm.tsa.filters.hpfilter(cdf['Market Cap'])
             cdf['tend'] = cdf_tend
 
-            # graficando la variacion del precio real con la tendencia.
-            cdf[['Market Cap', 'tend']].plot(figsize=(10, 8), fontsize=12);
-            legend = plt.legend()
             plt.title(moneda)
-            legend.prop.set_size(14);
-
-            # Añadido por moi
-            descomposition = sm.tsa.seasonal_decompose(cdf['Market Cap'],
-                                                       model='additive', freq=30)
-            fig = descomposition.plot()
-
-            # Ejemplo de descomposición de serie de tiempo
-            descomposicion = sm.tsa.seasonal_decompose(cdf['Market Cap'],
-                                                       model='additive', freq=365)
-            fig = descomposicion.plot()
-
-            variacion_diaria = cdf['Close'] / cdf['Close'].shift(1) - 1
-            cdf['var_diaria'] = variacion_diaria
-            cdf['var_diaria'][:5]
-
-            # modelo ARIMA sobre variación diaria
-            modelo = sm.tsa.ARIMA(cdf['var_diaria'].iloc[1:], order=(1, 0, 0))
-            resultados = modelo.fit(disp=-1)
-            cdf['prediccion'] = resultados.fittedvalues
-            plot = cdf[['var_diaria', 'prediccion']].plot(figsize=(10, 8))
 
             print coso.dataFrame
 
@@ -141,7 +147,7 @@ for moneda in monedas:
 
             l_temporal = []
             aux_temporal = []
-            aux_carlos = []
+        
             temporal = []
             vacia = True
             volume = 0
@@ -149,6 +155,8 @@ for moneda in monedas:
             cont = 0
             initial_mc = cdf['Market Cap'].iloc[0]  # Toma el MC en el momento de entrada a mercado
             ax = None
+            
+            STATE = 'P0'
             
             for index, row in cdf.iterrows():
                 if (vacia):
@@ -160,12 +168,12 @@ for moneda in monedas:
                 vend = row['Market Cap']
                 if ((dbegin != row['Date'])):
 
-                    if (finlt(initial_mc, vend)):
+                    if (finlt(initial_mc, vend, STATE)):
                         dend = row['Date']
                         cont = cont + 1
                         mean = acum / cont
-                        ltype = findtype(initial_mc, vend)
-                        if (change_mc(initial_mc, vend)):
+                        ltype, STATE = findtype(initial_mc, vend, STATE)
+                        if STATE == 'P0':
                             initial_mc = vbegin
                             print(initial_mc)
                         temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean, initial_mc]
@@ -186,8 +194,7 @@ for moneda in monedas:
             for au in l_temporal:
                 print "{}  a {} ".format(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
                 l = pd.date_range(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
-                aux_carlos.append(cdf[(pd.to_datetime(cdf.index) >= pd.to_datetime(l[0])) & (
-                pd.to_datetime(cdf.index) <= pd.to_datetime(l[-1]))])
+                
 
             this_ltemporal = []
             for aux in aux_temporal:
@@ -196,30 +203,30 @@ for moneda in monedas:
                 # Type 1: r (red) Type 2: g (green)
                 # Type 3: y (yellow) Type 4: k (black)
                 # Type 5: m (magenta) Type 6: c (cyan)
-                # Type 7: b (blue)
-                typeTemp = findtype(ax[0], ax[-1])
-                if typeTemp==1:
-                    #Estable, no sube ni baja
-                    ax.plot(c='r')
-                elif typeTemp==2:
-                    #Subir por encima del primer umbral
-                    ax.plot(c='g')
-                elif typeTemp==3:
-                    #Subir por encima del segundo umbral
-                    ax.plot(c='y')
-                elif typeTemp==4:
-                    ax.plot(c='k')
-                elif typeTemp==5:
-                    ax.plot(c='m')
-                elif typeTemp==6:
-                    ax.plot(c='c')
-                elif typeTemp==7:
-                    ax.plot(c='b')
-                
+                # Type 7: b (blue) Type 8: w (white)
                 for ltemporal in l_temporal:
-                    if ax2[0] == ltemporal[0]:
+                    if ax2[0] == ltemporal[0] and ax2[-1] == ltemporal[1]:
                         this_ltemporal = ltemporal
                         break
+                typeTemp = this_ltemporal[2]
+                if typeTemp==1:
+                    ax.plot(c='r', figsize=(15, 8))
+                elif typeTemp==2:
+                    ax.plot(c='r', figsize=(15, 8))
+                elif typeTemp==3:
+                    ax.plot(c='b', figsize=(15, 8))
+                elif typeTemp==4:
+                    ax.plot(c='b', figsize=(15, 8))
+                elif typeTemp==5:
+                    ax.plot(c='r', figsize=(15, 8))
+                elif typeTemp==6:
+                    ax.plot(c='b', figsize=(15, 8))
+                elif typeTemp==7:
+                    ax.plot(c='r', figsize=(15, 8))
+                elif typeTemp==8:
+                    ax.plot(c='b', figsize=(15, 8))
+                elif typeTemp==0:
+                    ax.plot(c='y', figsize=(15, 8))
                      
                 aux['Market Cap'] = this_ltemporal[7]
     
