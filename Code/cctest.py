@@ -174,7 +174,7 @@ for moneda in monedas:
                         mean = acum / cont
                         ltype, STATE = findtype(initial_mc, vend, STATE)
                         if STATE == 'P0':
-                            initial_mc = vbegin
+                            initial_mc = vend
                             print(initial_mc)
                         temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean, initial_mc]
                         #                    print(temporal)
@@ -231,3 +231,4 @@ for moneda in monedas:
                 aux['Market Cap'] = this_ltemporal[7]
     
                 aux['Market Cap'].plot(c='k')
+                
