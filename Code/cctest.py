@@ -98,7 +98,6 @@ def findtype(vbegin, vend, STATE):
 
 mypath = 'Top100/'
 cryptoconcurrenciesName = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-
 columns = ['Name', 'Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Market Cap']
 df = {}
 df = pd.DataFrame(columns=columns)
@@ -106,6 +105,10 @@ df = pd.DataFrame(columns=columns)
 col_time = ['DBegin', 'DEnd', 'Type', 'VBegin', 'VEnd', 'Volume', 'Mean']
 dl = {}
 dl = pd.DataFrame(columns=col_time)
+
+col_coins = ['Cryptocurrency', 'Type1', 'Type2', 'Type3', 'Type4', 'Type5', 'Type6', 'Type7', 'Type8', 'Type0']
+dc = {}
+dc = pd.DataFrame(columns=col_coins)
 
 print cryptoconcurrenciesName
 for cryptoName in cryptoconcurrenciesName:
@@ -118,12 +121,32 @@ for cryptoName in cryptoconcurrenciesName:
     df = df.append(cryptoconcurrencies.dataFrame)
     df = df.fillna(cryptoName[0:-4])
 
-monedas = ['Bitcoin']  # ,'Ethereum','Monero']
+monedas = []
+for i in cryptoconcurrenciesName:
+    monedas.append(str(i[:-4]))
 
 bamboo = Bamboo('Coins', df, columns, target='Market Cap')
 bambooList = rp.divideDataFrame(bamboo, 'Name')
+
+coins = []
+
 for moneda in monedas:
 
+    print(moneda)
+    ###################
+    #Caracterización
+    type1 = 0
+    type2 = 0
+    type3 = 0
+    type4 = 0
+    type5 = 0
+    type6 = 0
+    type7 = 0
+    type8 = 0
+    type0 = 0
+    ##################
+    #Caracterización de monedas
+    coin = []
     for coso in bambooList:
         #        print coso.dataFrame['Name'].iloc[0]
         if coso.dataFrame['Name'].iloc[0] == moneda:
@@ -140,7 +163,7 @@ for moneda in monedas:
 
             plt.title(moneda)
 
-            print coso.dataFrame
+#            print coso.dataFrame
 
             ###INTENTO DE LINEAS TEMPORALES
             ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
@@ -173,9 +196,27 @@ for moneda in monedas:
                         cont = cont + 1
                         mean = acum / cont
                         ltype, STATE = findtype(initial_mc, vend, STATE)
+                        if ltype==1:
+                            type1 = type1 + 1
+                        elif ltype==2:
+                            type2 = type2 + 1
+                        elif ltype==3:
+                            type3 = type3 + 1
+                        elif ltype==4:
+                            type4 = type4 + 1
+                        elif ltype==5:
+                            type5 = type5 + 1
+                        elif ltype==6:
+                            type6 = type6 + 1
+                        elif ltype==7:
+                            type7 = type7 + 1
+                        elif ltype==8:
+                            type8 = type8 + 1
+                        elif ltype==0:
+                            type0 = type0 + 1
                         if STATE == 'P0':
                             initial_mc = vend
-                            print(initial_mc)
+#                            print(initial_mc)
                         temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean, initial_mc]
                         #                    print(temporal)
                         #                    dl.append(temporal)
@@ -192,43 +233,63 @@ for moneda in monedas:
                             cdf[(pd.to_datetime(cdf.index) >= dbegin) & (pd.to_datetime(cdf.index) <= dend)])
 
             for au in l_temporal:
-                print "{}  a {} ".format(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
+#                print "{}  a {} ".format(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
                 l = pd.date_range(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
                 
 
             this_ltemporal = []
-            for aux in aux_temporal:
-                ax = aux['Market Cap']
-                ax2 = aux['Date']
-                # Type 1: r (red) Type 2: g (green)
-                # Type 3: y (yellow) Type 4: k (black)
-                # Type 5: m (magenta) Type 6: c (cyan)
-                # Type 7: b (blue) Type 8: w (white)
-                for ltemporal in l_temporal:
-                    if ax2[0] == ltemporal[0] and ax2[-1] == ltemporal[1]:
-                        this_ltemporal = ltemporal
-                        break
-                typeTemp = this_ltemporal[2]
-                if typeTemp==1:
-                    ax.plot(c='r', figsize=(15, 8))
-                elif typeTemp==2:
-                    ax.plot(c='r', figsize=(15, 8))
-                elif typeTemp==3:
-                    ax.plot(c='b', figsize=(15, 8))
-                elif typeTemp==4:
-                    ax.plot(c='b', figsize=(15, 8))
-                elif typeTemp==5:
-                    ax.plot(c='r', figsize=(15, 8))
-                elif typeTemp==6:
-                    ax.plot(c='b', figsize=(15, 8))
-                elif typeTemp==7:
-                    ax.plot(c='r', figsize=(15, 8))
-                elif typeTemp==8:
-                    ax.plot(c='b', figsize=(15, 8))
-                elif typeTemp==0:
-                    ax.plot(c='y', figsize=(15, 8))
-                     
-                aux['Market Cap'] = this_ltemporal[7]
+#            for aux in aux_temporal:
+#                ax = aux['Market Cap']
+#                ax2 = aux['Date']
+#                # Type 1: r (red) Type 2: g (green)
+#                # Type 3: y (yellow) Type 4: k (black)
+#                # Type 5: m (magenta) Type 6: c (cyan)
+#                # Type 7: b (blue) Type 8: w (white)
+#                for ltemporal in l_temporal:
+#                    if ax2[0] == ltemporal[0] and ax2[-1] == ltemporal[1]:
+#                        this_ltemporal = ltemporal
+#                        break
+#                typeTemp = this_ltemporal[2]
+#                if typeTemp==1:
+#                    ax.plot(c='r', figsize=(15, 8))
+#                elif typeTemp==2:
+#                    ax.plot(c='r', figsize=(15, 8))
+#                elif typeTemp==3:
+#                    ax.plot(c='b', figsize=(15, 8))
+#                elif typeTemp==4:
+#                    ax.plot(c='b', figsize=(15, 8))
+#                elif typeTemp==5:
+#                    ax.plot(c='r', figsize=(15, 8))
+#                elif typeTemp==6:
+#                    ax.plot(c='b', figsize=(15, 8))
+#                elif typeTemp==7:
+#                    ax.plot(c='r', figsize=(15, 8))
+#                elif typeTemp==8:
+#                    ax.plot(c='b', figsize=(15, 8))
+#                elif typeTemp==0:
+#                    ax.plot(c='y', figsize=(15, 8))
+#                     
+#                aux['Market Cap'] = this_ltemporal[7]
+#    
+#                aux['Market Cap'].plot(c='k')
+                
+#############################################################
+                #Parte de caracterización de monedas
+#['Cryptocurrency', 'Type1', 'Type2', 'Type3', 'Type4', 'Type5', 'Type6', 'Type7', 'Type8']
+#############################################################
+            d_moneda = pd.DataFrame(columns=col_coins)
+            d_moneda['Cryptocurrency'] = moneda
+            d_moneda['Type1'] = type1
+            d_moneda['Type2'] = type2
+            d_moneda['Type3'] = type3
+            d_moneda['Type4'] = type4
+            d_moneda['Type5'] = type5
+            d_moneda['Type6'] = type6
+            d_moneda['Type7'] = type7
+            d_moneda['Type8'] = type8
+            d_moneda['Type0'] = type0
+#    coin = [moneda, type1, type2, type3, type4, type5, type6, type7, type8, type0]
+#    coins.append(coin)
+            dc = dc.append(d_moneda)
     
-                aux['Market Cap'].plot(c='k')
                 
