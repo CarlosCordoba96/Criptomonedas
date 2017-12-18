@@ -19,47 +19,6 @@ p1 = 0.05
 p2 = 0.3
 p3 = 0.4
 
-def kmeans(cases):
-    import matplotlib.pyplot as plt
-    from sklearn.decomposition import PCA
-    from sklearn import preprocessing
-    
-    def plotdata(cases,labels,name): #def plotdata for each of the representations (k-means, silhouette and distortion)
-        fig, ax = plt.subplots()
-        plt.scatter([row[0] for row in cases], [row[1] for row in cases], c=labels)
-        ax.grid(True)
-        fig.tight_layout()
-        plt.title(name)
-        plt.xlim(-1, 2)
-        plt.ylim(-0.4, 0.8)
-        plt.show()
-    
-    min_max_scaler = preprocessing.MinMaxScaler()
-    norm_cases = min_max_scaler.fit_transform(cases)
-    
-    # Creating the pca representation
-    estimator = PCA (n_components = 2)
-    X_pca = estimator.fit_transform(norm_cases)
-    print(estimator.explained_variance_ratio_)
-    labels = [0 for x in range(len(cases))]
-    
-    
-    # Applies k-means with these different attributes
-    k = 4 #Number of centroids
-    init = "k-means++" #Method that we are using (k-means++ or random)
-    iterations = 50 #Number of times that the centroids are moved in the mean of their values
-    max_iter = 300 #Maximum number of moves(itearions)
-    tol = 1e-04 # controls the tolerance with regard to the changes in the within-cluster sum-squared-error to declare convergence
-    random_state = 0 #Random state
-
-    # Executing the clustering
-    from sklearn.cluster import KMeans
-    km = KMeans(k, init, n_init = iterations ,max_iter= max_iter, tol = tol,random_state = random_state)
-    labels = km.fit_predict(norm_cases)
-    
-    # Plots the results: PCA with the centroids, Silhouette coefficient and distortion
-    plotdata(X_pca,labels, init)
-
 def clustering(cases):
         
     import matplotlib.pyplot as plt
@@ -203,7 +162,7 @@ columns = ['Name', 'Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Market Cap
 df = {}
 df = pd.DataFrame(columns=columns)
 
-col_time = ['DBegin', 'DEnd', 'Type', 'VBegin', 'VEnd', 'Volume', 'Mean']
+col_time = ['Length', 'Type', 'VBegin', 'VEnd', 'Volume', 'Mean', 'NextLine']
 dl = {}
 dl = pd.DataFrame(columns=col_time)
 
@@ -239,7 +198,7 @@ ltype8 = []
 ltype0 = []
 for moneda in monedas:
 
-    print(moneda)
+#    print(moneda)
     ###################
     #Caracterización
     type1 = 0
@@ -273,7 +232,7 @@ for moneda in monedas:
 #            print coso.dataFrame
 
             ###INTENTO DE LINEAS TEMPORALES
-            ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
+            ['Length', 'VBegin', 'VEnd', 'Volume', 'Mean', 'NextLine']
 
             l_temporal = []
             aux_temporal = []
@@ -297,13 +256,12 @@ for moneda in monedas:
                 acum = acum + row['Market Cap']
                 vend = row['Market Cap']
                 if ((dbegin != row['Date'])):
-
+                    cont = cont + 1
                     if (finlt(initial_mc, vend, STATE)):
                         dend = row['Date']
-                        cont = cont + 1
                         mean = acum / cont
                         ltype, STATE = findtype(initial_mc, vend, STATE)
-                        temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean, initial_mc]
+                        temporal = [cont, ltype, vbegin, vend, volume, mean, initial_mc, 0]
                         if ltype==1:
                             type1 = type1 + 1
                             ltype1.append(temporal)
@@ -349,6 +307,22 @@ for moneda in monedas:
                         aux_temporal.append(
                             cdf[(pd.to_datetime(cdf.index) >= dbegin) & (pd.to_datetime(cdf.index) <= dend)])
 
+            ##########
+            #Intento regresión de lt
+            firstLine = True
+            for i in range(len(l_temporal),0,-1):
+                if (firstLine):
+                    l1 = l_temporal[i-1]
+                    l1[7] = l1[1]
+                    print(l1[1])
+                    firstLine = False
+                else:
+                    l1 = l_temporal[i-1]
+                    l2 = l_temporal[i]
+                    l1[7] = l2[1]
+            firstLine = True
+
+            ##########
             for au in l_temporal:
 #                print "{}  a {} ".format(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
                 l = pd.date_range(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
@@ -410,15 +384,15 @@ for moneda in monedas:
     d_moneda = pd.DataFrame(coins,columns=['Cryptocurrency', 'Type1', 'Type2', 'Type3', 'Type4', 'Type5', 'Type6', 'Type7', 'Type8', 'Type0'])
 
 #            dc = dc.append(d_moneda)
-d_type1 = pd.DataFrame(ltype1,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type2 = pd.DataFrame(ltype2,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type3 = pd.DataFrame(ltype3,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type4 = pd.DataFrame(ltype4,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type5 = pd.DataFrame(ltype5,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type6 = pd.DataFrame(ltype6,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type7 = pd.DataFrame(ltype7,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type8 = pd.DataFrame(ltype8,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
-d_type0 = pd.DataFrame(ltype0,columns=['dbegin', 'dend', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc'])
+d_type1 = pd.DataFrame(ltype1,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type2 = pd.DataFrame(ltype2,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type3 = pd.DataFrame(ltype3,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type4 = pd.DataFrame(ltype4,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type5 = pd.DataFrame(ltype5,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type6 = pd.DataFrame(ltype6,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type7 = pd.DataFrame(ltype7,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type8 = pd.DataFrame(ltype8,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type0 = pd.DataFrame(ltype0,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 
 d_types = []
 d_types.append(d_type1)
@@ -435,10 +409,9 @@ for d_type in d_types:
     #print 'Type'+d_type['ltype'].loc(0)
     d_type = d_type.drop('ltype', 1)
     
-    for index, row in df.iterrows():
-        a = row['dend']-row['dbegin']
-        print a
+#    for index, row in df.iterrows():
+#        a = row['dend']-row['dbegin']
+#        print a
 d_moneda = d_moneda.drop('Cryptocurrency', 1)
 clustering(d_moneda)
-kmeans(d_moneda)
                 
