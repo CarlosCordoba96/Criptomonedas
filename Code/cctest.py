@@ -19,6 +19,47 @@ p1 = 0.05
 p2 = 0.3
 p3 = 0.4
 
+def kmeans(cases):
+    import matplotlib.pyplot as plt
+    from sklearn.decomposition import PCA
+    from sklearn import preprocessing
+    
+    def plotdata(cases,labels,name): #def plotdata for each of the representations (k-means, silhouette and distortion)
+        fig, ax = plt.subplots()
+        plt.scatter([row[0] for row in cases], [row[1] for row in cases], c=labels)
+        ax.grid(True)
+        fig.tight_layout()
+        plt.title(name)
+        plt.xlim(-1, 2)
+        plt.ylim(-0.4, 0.8)
+        plt.show()
+    
+    min_max_scaler = preprocessing.MinMaxScaler()
+    norm_cases = min_max_scaler.fit_transform(cases)
+    
+    # Creating the pca representation
+    estimator = PCA (n_components = 2)
+    X_pca = estimator.fit_transform(norm_cases)
+    print(estimator.explained_variance_ratio_)
+    labels = [0 for x in range(len(cases))]
+    
+    
+    # Applies k-means with these different attributes
+    k = 4 #Number of centroids
+    init = "k-means++" #Method that we are using (k-means++ or random)
+    iterations = 50 #Number of times that the centroids are moved in the mean of their values
+    max_iter = 300 #Maximum number of moves(itearions)
+    tol = 1e-04 # controls the tolerance with regard to the changes in the within-cluster sum-squared-error to declare convergence
+    random_state = 0 #Random state
+
+    # Executing the clustering
+    from sklearn.cluster import KMeans
+    km = KMeans(k, init, n_init = iterations ,max_iter= max_iter, tol = tol,random_state = random_state)
+    labels = km.fit_predict(norm_cases)
+    
+    # Plots the results: PCA with the centroids, Silhouette coefficient and distortion
+    plotdata(X_pca,labels, init)
+
 def clustering(cases):
         
     import matplotlib.pyplot as plt
@@ -353,4 +394,5 @@ for moneda in monedas:
     
 d_moneda = d_moneda.drop('Cryptocurrency', 1)
 clustering(d_moneda)
+kmeans(d_moneda)
                 
