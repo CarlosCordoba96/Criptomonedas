@@ -65,6 +65,8 @@ class Correlation:
         from scipy.cluster.hierarchy import dendrogram, linkage
 
         dendrogram(linkage(self.calc_corr(), method))
+
+        plt.xticks(size=12)
         plt.show()
 
     def top_linear_correlated(self, i=5):
