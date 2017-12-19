@@ -383,7 +383,7 @@ for moneda in monedas:
     coins.append(coin)
     d_moneda = pd.DataFrame(coins,columns=['Cryptocurrency', 'Type1', 'Type2', 'Type3', 'Type4', 'Type5', 'Type6', 'Type7', 'Type8', 'Type0'])
 
-#            dc = dc.append(d_moneda)
+################## C L U S T E R I N G ########################################
 d_type1 = pd.DataFrame(ltype1,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 d_type2 = pd.DataFrame(ltype2,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 d_type3 = pd.DataFrame(ltype3,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
@@ -395,24 +395,61 @@ d_type8 = pd.DataFrame(ltype8,columns=['length', 'ltype', 'vbegin','vend', 'volu
 d_type0 = pd.DataFrame(ltype0,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 
 d_type1 = d_type1.drop('ltype', 1)
-d_type1 = d_type2.drop('ltype', 1)
-d_type1 = d_type3.drop('ltype', 1)
-d_type1 = d_type4.drop('ltype', 1)
-d_type1 = d_type5.drop('ltype', 1)
-d_type1 = d_type6.drop('ltype', 1)
-d_type1 = d_type7.drop('ltype', 1)
-d_type1 = d_type8.drop('ltype', 1)
-d_type1 = d_type0.drop('ltype', 1)
+d_type2 = d_type2.drop('ltype', 1)
+d_type3 = d_type3.drop('ltype', 1)
+d_type4 = d_type4.drop('ltype', 1)
+d_type5 = d_type5.drop('ltype', 1)
+d_type6 = d_type6.drop('ltype', 1)
+d_type7 = d_type7.drop('ltype', 1)
+d_type8 = d_type8.drop('ltype', 1)
+d_type0 = d_type0.drop('ltype', 1)
 
+#d_type1 = d_type1[d_type1['length'] > 1]
+d_type2 = d_type2[d_type2['length'] > 1]
+d_type3 = d_type3[d_type3['length'] > 1]
+d_type4 = d_type4[d_type4['length'] > 1]
+d_type5 = d_type5[d_type5['length'] > 1]
+d_type6 = d_type6[d_type6['length'] > 1]
+d_type7 = d_type7[d_type7['length'] > 1]
+d_type8 = d_type8[d_type8['length'] > 1]
+d_type0 = d_type0[d_type0['length'] > 1]
 
-#for d_type in d_types:
-#    #print 'Type'+d_type['ltype'].loc(0)
-#    d_type = d_type.drop('ltype', 1)
-    
-#   for index, row in df.iterrows():
-#        a = row['dend']-row['dbegin']
-#        print a
 d_moneda = d_moneda.drop('Cryptocurrency', 1)
+
 clustering(d_moneda)
-                
+'''          
 clustering(d_type1)
+clustering(d_type2)
+clustering(d_type3)
+clustering(d_type4)
+clustering(d_type5)
+clustering(d_type6)
+clustering(d_type7)
+clustering(d_type8)
+clustering(d_type0)
+'''
+################# R E G R E S S O R ###########################################
+from sklearn.ensemble import RandomForestRegressor
+regressor = RandomForestRegressor(n_estimators= 1000, criterion='mae', random_state=0)
+
+####################################
+#APLICACION DEL MODEL AL PROPIO TRAINING DATASET
+####################################
+## sample a training set while holding out 40% of the data for testing (evaluating) our classifier:
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(d_type1[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']], d_type1['nextline'], test_size=0.4)
+
+# 2.2 Feature Relevances
+
+#1.1 Model Parametrization 
+#regressor = RandomForestRegressor(n_estimators= 1000, max_depth = 3, criterion='mae', random_state=0)
+#1.2 Model construction
+regressor.fit(X_train, y_train)
+
+# Test
+y_pred = regressor.predict(X_test)
+
+# metrics calculation 
+from sklearn.metrics import mean_absolute_error
+mae = mean_absolute_error(y_test,y_pred)
+print "Error Measure ", mae
