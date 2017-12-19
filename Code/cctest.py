@@ -383,7 +383,7 @@ for moneda in monedas:
     coins.append(coin)
     d_moneda = pd.DataFrame(coins,columns=['Cryptocurrency', 'Type1', 'Type2', 'Type3', 'Type4', 'Type5', 'Type6', 'Type7', 'Type8', 'Type0'])
 
-#            dc = dc.append(d_moneda)
+################## C L U S T E R I N G ########################################
 d_type1 = pd.DataFrame(ltype1,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 d_type2 = pd.DataFrame(ltype2,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 d_type3 = pd.DataFrame(ltype3,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
@@ -394,24 +394,83 @@ d_type7 = pd.DataFrame(ltype7,columns=['length', 'ltype', 'vbegin','vend', 'volu
 d_type8 = pd.DataFrame(ltype8,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 d_type0 = pd.DataFrame(ltype0,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 
-d_types = []
-d_types.append(d_type1)
-d_types.append(d_type2)
-d_types.append(d_type3)
-d_types.append(d_type4)
-d_types.append(d_type5)
-d_types.append(d_type6)
-d_types.append(d_type7)
-d_types.append(d_type8)
-d_types.append(d_type0)
+d_type1 = d_type1.drop('ltype', 1)
+d_type2 = d_type2.drop('ltype', 1)
+d_type3 = d_type3.drop('ltype', 1)
+d_type4 = d_type4.drop('ltype', 1)
+d_type5 = d_type5.drop('ltype', 1)
+d_type6 = d_type6.drop('ltype', 1)
+d_type7 = d_type7.drop('ltype', 1)
+d_type8 = d_type8.drop('ltype', 1)
+d_type0 = d_type0.drop('ltype', 1)
 
-for d_type in d_types:
-    #print 'Type'+d_type['ltype'].loc(0)
-    d_type = d_type.drop('ltype', 1)
-    
-#    for index, row in df.iterrows():
-#        a = row['dend']-row['dbegin']
-#        print a
+d_type1 = d_type1[d_type1['length'] > 1]
+d_type2 = d_type2[d_type2['length'] > 1]
+d_type3 = d_type3[d_type3['length'] > 1]
+d_type4 = d_type4[d_type4['length'] > 1]
+d_type5 = d_type5[d_type5['length'] > 1]
+d_type6 = d_type6[d_type6['length'] > 1]
+d_type7 = d_type7[d_type7['length'] > 1]
+d_type8 = d_type8[d_type8['length'] > 1]
+d_type0 = d_type0[d_type0['length'] > 1]
+
 d_moneda = d_moneda.drop('Cryptocurrency', 1)
+
 clustering(d_moneda)
-                
+'''          
+clustering(d_type1)
+clustering(d_type2)
+clustering(d_type3)
+clustering(d_type4)
+clustering(d_type5)
+clustering(d_type6)
+clustering(d_type7)
+clustering(d_type8)
+clustering(d_type0)
+'''
+# CROSS VALIDATION ANALYSIS
+from sklearn.cross_validation import cross_val_score
+from sklearn.tree import DecisionTreeClassifier
+
+total_scores = []
+from sklearn.metrics import mean_absolute_error
+for i in range(2, 30):
+    regressor2 = DecisionTreeClassifier(max_depth=i)
+    regressor2.fit(d_type0[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']],
+                   d_type0['nextline'])
+    scores = -cross_val_score(regressor2, d_type0[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']],
+             d_type0['nextline'], scoring='neg_mean_absolute_error', cv=10)
+    total_scores.append(scores.mean())
+
+plt.plot(range(2,30), total_scores, marker='o')
+plt.xlabel('max_depth')
+plt.ylabel('cv score')
+plt.show() 
+
+################# R E G R E S S O R ###########################################
+
+#11 as stated in the CV test
+regressor = DecisionTreeClassifier(max_depth=3, random_state=0)
+
+####################################
+#APLICACION DEL MODEL AL PROPIO TRAINING DATASET
+####################################
+## sample a training set while holding out 40% of the data for testing (evaluating) our classifier:
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(d_type0[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']], d_type0['nextline'], test_size=0.4)
+
+# 2.2 Feature Relevances
+
+#1.1 Model Parametrization 
+#regressor = RandomForestRegressor(n_estimators= 1000, max_depth = 3, criterion='mae', random_state=0)
+#1.2 Model construction
+regressor.fit(X_train, y_train)
+
+# Test
+y_pred = regressor.predict(X_test)
+
+# metrics calculation 
+mae = mean_absolute_error(y_test,y_pred)
+print "Error Measure ", mae
+
+
