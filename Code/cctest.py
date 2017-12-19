@@ -162,7 +162,7 @@ columns = ['Name', 'Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Market Cap
 df = {}
 df = pd.DataFrame(columns=columns)
 
-col_time = ['DBegin', 'DEnd', 'Type', 'VBegin', 'VEnd', 'Volume', 'Mean']
+col_time = ['Length', 'Type', 'VBegin', 'VEnd', 'Volume', 'Mean', 'NextLine']
 dl = {}
 dl = pd.DataFrame(columns=col_time)
 
@@ -187,10 +187,18 @@ bamboo = Bamboo('Coins', df, columns, target='Market Cap')
 bambooList = rp.divideDataFrame(bamboo, 'Name')
 
 coins = []
-
+ltype1 = []
+ltype2 = []
+ltype3 = []
+ltype4 = []
+ltype5 = []
+ltype6 = []
+ltype7 = []
+ltype8 = []
+ltype0 = []
 for moneda in monedas:
 
-    print(moneda)
+#    print(moneda)
     ###################
     #Caracterización
     type1 = 0
@@ -224,7 +232,7 @@ for moneda in monedas:
 #            print coso.dataFrame
 
             ###INTENTO DE LINEAS TEMPORALES
-            ['DBegin', 'DEnd', 'VBegin', 'VEnd', 'Volume', 'Mean']
+            ['Length', 'VBegin', 'VEnd', 'Volume', 'Mean', 'NextLine']
 
             l_temporal = []
             aux_temporal = []
@@ -248,34 +256,43 @@ for moneda in monedas:
                 acum = acum + row['Market Cap']
                 vend = row['Market Cap']
                 if ((dbegin != row['Date'])):
-
+                    cont = cont + 1
                     if (finlt(initial_mc, vend, STATE)):
                         dend = row['Date']
-                        cont = cont + 1
                         mean = acum / cont
                         ltype, STATE = findtype(initial_mc, vend, STATE)
+                        temporal = [cont, ltype, vbegin, vend, volume, mean, initial_mc, 0]
                         if ltype==1:
                             type1 = type1 + 1
+                            ltype1.append(temporal)
                         elif ltype==2:
                             type2 = type2 + 1
+                            ltype2.append(temporal)
                         elif ltype==3:
                             type3 = type3 + 1
+                            ltype3.append(temporal)
                         elif ltype==4:
                             type4 = type4 + 1
+                            ltype4.append(temporal)
                         elif ltype==5:
                             type5 = type5 + 1
+                            ltype5.append(temporal)
                         elif ltype==6:
                             type6 = type6 + 1
+                            ltype6.append(temporal)
                         elif ltype==7:
                             type7 = type7 + 1
+                            ltype7.append(temporal)
                         elif ltype==8:
                             type8 = type8 + 1
+                            ltype8.append(temporal)
                         elif ltype==0:
                             type0 = type0 + 1
+                            ltype0.append(temporal)
                         if STATE == 'P0':
                             initial_mc = vend
 #                            print(initial_mc)
-                        temporal = [dbegin, dend, ltype, vbegin, vend, volume, mean, initial_mc]
+                        
                         #                    print(temporal)
                         #                    dl.append(temporal)
                         l_temporal.append(temporal)
@@ -290,6 +307,22 @@ for moneda in monedas:
                         aux_temporal.append(
                             cdf[(pd.to_datetime(cdf.index) >= dbegin) & (pd.to_datetime(cdf.index) <= dend)])
 
+            ##########
+            #Intento regresión de lt
+            firstLine = True
+            for i in range(len(l_temporal),0,-1):
+                if (firstLine):
+                    l1 = l_temporal[i-1]
+                    l1[7] = l1[1]
+                    print(l1[1])
+                    firstLine = False
+                else:
+                    l1 = l_temporal[i-1]
+                    l2 = l_temporal[i]
+                    l1[7] = l2[1]
+            firstLine = True
+
+            ##########
             for au in l_temporal:
 #                print "{}  a {} ".format(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
                 l = pd.date_range(pd.to_datetime(au[0]), pd.to_datetime(au[1]))
@@ -349,8 +382,36 @@ for moneda in monedas:
     coin = [moneda, type1, type2, type3, type4, type5, type6, type7, type8, type0]
     coins.append(coin)
     d_moneda = pd.DataFrame(coins,columns=['Cryptocurrency', 'Type1', 'Type2', 'Type3', 'Type4', 'Type5', 'Type6', 'Type7', 'Type8', 'Type0'])
+
 #            dc = dc.append(d_moneda)
+d_type1 = pd.DataFrame(ltype1,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type2 = pd.DataFrame(ltype2,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type3 = pd.DataFrame(ltype3,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type4 = pd.DataFrame(ltype4,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type5 = pd.DataFrame(ltype5,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type6 = pd.DataFrame(ltype6,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type7 = pd.DataFrame(ltype7,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type8 = pd.DataFrame(ltype8,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+d_type0 = pd.DataFrame(ltype0,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
+
+d_types = []
+d_types.append(d_type1)
+d_types.append(d_type2)
+d_types.append(d_type3)
+d_types.append(d_type4)
+d_types.append(d_type5)
+d_types.append(d_type6)
+d_types.append(d_type7)
+d_types.append(d_type8)
+d_types.append(d_type0)
+
+for d_type in d_types:
+    #print 'Type'+d_type['ltype'].loc(0)
+    d_type = d_type.drop('ltype', 1)
     
+#    for index, row in df.iterrows():
+#        a = row['dend']-row['dbegin']
+#        print a
 d_moneda = d_moneda.drop('Cryptocurrency', 1)
 clustering(d_moneda)
                 
