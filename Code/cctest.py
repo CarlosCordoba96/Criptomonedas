@@ -394,24 +394,25 @@ d_type7 = pd.DataFrame(ltype7,columns=['length', 'ltype', 'vbegin','vend', 'volu
 d_type8 = pd.DataFrame(ltype8,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 d_type0 = pd.DataFrame(ltype0,columns=['length', 'ltype', 'vbegin','vend', 'volume', 'mean', 'initial_mc', 'nextline'])
 
-d_types = []
-d_types.append(d_type1)
-d_types.append(d_type2)
-d_types.append(d_type3)
-d_types.append(d_type4)
-d_types.append(d_type5)
-d_types.append(d_type6)
-d_types.append(d_type7)
-d_types.append(d_type8)
-d_types.append(d_type0)
+d_type1 = d_type1.drop('ltype', 1)
+d_type1 = d_type2.drop('ltype', 1)
+d_type1 = d_type3.drop('ltype', 1)
+d_type1 = d_type4.drop('ltype', 1)
+d_type1 = d_type5.drop('ltype', 1)
+d_type1 = d_type6.drop('ltype', 1)
+d_type1 = d_type7.drop('ltype', 1)
+d_type1 = d_type8.drop('ltype', 1)
+d_type1 = d_type0.drop('ltype', 1)
 
-for d_type in d_types:
-    #print 'Type'+d_type['ltype'].loc(0)
-    d_type = d_type.drop('ltype', 1)
+
+#for d_type in d_types:
+#    #print 'Type'+d_type['ltype'].loc(0)
+#    d_type = d_type.drop('ltype', 1)
     
-#    for index, row in df.iterrows():
+#   for index, row in df.iterrows():
 #        a = row['dend']-row['dbegin']
 #        print a
 d_moneda = d_moneda.drop('Cryptocurrency', 1)
 clustering(d_moneda)
                 
+clustering(d_type1)
