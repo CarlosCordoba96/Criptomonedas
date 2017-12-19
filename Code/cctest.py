@@ -404,7 +404,7 @@ d_type7 = d_type7.drop('ltype', 1)
 d_type8 = d_type8.drop('ltype', 1)
 d_type0 = d_type0.drop('ltype', 1)
 
-#d_type1 = d_type1[d_type1['length'] > 1]
+d_type1 = d_type1[d_type1['length'] > 1]
 d_type2 = d_type2[d_type2['length'] > 1]
 d_type3 = d_type3[d_type3['length'] > 1]
 d_type4 = d_type4[d_type4['length'] > 1]
@@ -428,16 +428,36 @@ clustering(d_type7)
 clustering(d_type8)
 clustering(d_type0)
 '''
+# CROSS VALIDATION ANALYSIS
+from sklearn.cross_validation import cross_val_score
+from sklearn.tree import DecisionTreeClassifier
+
+total_scores = []
+from sklearn.metrics import mean_absolute_error
+for i in range(2, 30):
+    regressor2 = DecisionTreeClassifier(max_depth=i)
+    regressor2.fit(d_type0[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']],
+                   d_type0['nextline'])
+    scores = -cross_val_score(regressor2, d_type0[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']],
+             d_type0['nextline'], scoring='neg_mean_absolute_error', cv=10)
+    total_scores.append(scores.mean())
+
+plt.plot(range(2,30), total_scores, marker='o')
+plt.xlabel('max_depth')
+plt.ylabel('cv score')
+plt.show() 
+
 ################# R E G R E S S O R ###########################################
-from sklearn.ensemble import RandomForestRegressor
-regressor = RandomForestRegressor(n_estimators= 1000, criterion='mae', random_state=0)
+
+#11 as stated in the CV test
+regressor = DecisionTreeClassifier(max_depth=11, random_state=0)
 
 ####################################
 #APLICACION DEL MODEL AL PROPIO TRAINING DATASET
 ####################################
 ## sample a training set while holding out 40% of the data for testing (evaluating) our classifier:
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(d_type1[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']], d_type1['nextline'], test_size=0.4)
+X_train, X_test, y_train, y_test = train_test_split(d_type0[['length', 'vbegin','vend', 'volume', 'mean', 'initial_mc']], d_type0['nextline'], test_size=0.4)
 
 # 2.2 Feature Relevances
 
@@ -450,6 +470,5 @@ regressor.fit(X_train, y_train)
 y_pred = regressor.predict(X_test)
 
 # metrics calculation 
-from sklearn.metrics import mean_absolute_error
 mae = mean_absolute_error(y_test,y_pred)
 print "Error Measure ", mae
