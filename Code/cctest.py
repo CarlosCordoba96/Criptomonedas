@@ -450,7 +450,7 @@ plt.show()
 ################# R E G R E S S O R ###########################################
 
 #11 as stated in the CV test
-regressor = DecisionTreeClassifier(max_depth=11, random_state=0)
+regressor = DecisionTreeClassifier(max_depth=3, random_state=0)
 
 ####################################
 #APLICACION DEL MODEL AL PROPIO TRAINING DATASET
@@ -472,3 +472,5 @@ y_pred = regressor.predict(X_test)
 # metrics calculation 
 mae = mean_absolute_error(y_test,y_pred)
 print "Error Measure ", mae
+
+
